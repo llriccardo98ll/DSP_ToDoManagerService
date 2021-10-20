@@ -1,15 +1,6 @@
 # DSP_ToDoManagerService
 Web Application I course delivered by Politecnico di Torino in the A.Y. 2020/2021
 
-## Team name: Web Applicaction Teaching Assistants team®
-
-Team members:
-
-* s123456 Antonio Servetti
-* s123456 Luca Mannella
-* s123456 Alberto Monge Roffarello
-* s123456 Juan Pablo Sáenz
-
 ## Users Registered
 
 | email | password | name |
