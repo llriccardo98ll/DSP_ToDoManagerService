@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://ToDoManager.com/userschema.json",
+    "$title": "Schema of Task",
+    "$comment": "To implement the dependenties",
+    
+    "dependencies": {},
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "uniquess": true
+        },
+        "definition": {
+            "type": "string",
+            "maxLength": 160
+        },
+        "important": {
+            "type": "boolean",
+            "default": false
+        },
+        "private": {
+            "type": "boolean",
+            "default": true
+        },
+        "projects": {
+            "enum": [
+                "Personal",
+                "WA1_Project",
+                "WA2_Project",
+                "DPS_Project"
+            ]
+        },
+        "deadline": {
+            "type": "string",
+            "format": "date"
+        },
+        "completed": {
+            "type": "boolean",
+            "default": false
+        },
+        "owner": {
+            "type": "string"
+        },
+        "assignedTo": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "id",
+        "description"
+    ]
+}
