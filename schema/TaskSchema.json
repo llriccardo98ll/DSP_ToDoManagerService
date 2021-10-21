@@ -3,7 +3,6 @@
     "$id": "http://ToDoManager.com/userschema.json",
     "$title": "Schema of Task",
     "$comment": "To implement the dependenties",
-    
     "dependencies": {},
     "type": "object",
     "properties": {
@@ -40,10 +39,10 @@
             "default": false
         },
         "owner": {
-            "type": "string"
+            "$ref": "./UserSchema.json"
         },
         "assignedTo": {
-            "type": "string"
+            "$ref": "./UserSchema.json"
         }
     },
     "required": [

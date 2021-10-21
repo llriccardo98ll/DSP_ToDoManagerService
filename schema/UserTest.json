@@ -1,8 +1,7 @@
 {
     "$schema": "./UserSchema.json",
-
     "id": 1,
     "name": "Riccardo",
     "email": "riccardo@studenti.polito.it",
-    "password": "Riccardo98"
+    "password": "Riccardo"
 }
