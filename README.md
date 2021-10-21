@@ -5,8 +5,8 @@ Web Application I course delivered by Politecnico di Torino in the A.Y. 2020/202
 
 | email | password | name |
 |-------|----------|------|
-| riccardo@studenti.polito.it | password | riccardo |
-| admin@studenti.polito.it | password | admin |
+| riccardo@studenti.polito.it | riccardo | riccardo |
+| admin@studenti.polito.it | alessio | admin |
 
 ## Instructions
 
