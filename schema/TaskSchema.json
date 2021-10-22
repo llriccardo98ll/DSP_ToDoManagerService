@@ -2,7 +2,6 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "http://ToDoManager.com/userschema.json",
     "$title": "Schema of Task",
-    "$comment": "To implement the dependenties",
     "dependencies": {},
     "type": "object",
     "properties": {
