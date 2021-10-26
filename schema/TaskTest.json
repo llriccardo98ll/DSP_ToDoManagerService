@@ -12,10 +12,18 @@
         "email": "riccardo@studenti.polito.it",
         "password": "Riccardo"
     },
-    "assignedTo": {
-        "id": 3,
-        "name": "Alessio",
-        "email": "alessio@studenti.polito.it",
-        "password": "Alessio"
-    }
+    "assignedTo": [
+        {
+            "id": 3,
+            "name": "Alessio",
+            "email": "alessio@studenti.polito.it",
+            "password": "Alessio"
+        },
+        {
+            "id": 4,
+            "name": "Edoardo",
+            "email": "edoardo@studenti.polito.it",
+            "password": "Edoardo"
+        }
+    ]
 }

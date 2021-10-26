@@ -41,7 +41,10 @@
             "$ref": "./UserSchema.json"
         },
         "assignedTo": {
-            "$ref": "./UserSchema.json"
+            "type": "array",
+            "items": {
+                "$ref": "./UserSchema.json"
+            }
         }
     },
     "required": [
