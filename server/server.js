@@ -77,117 +77,125 @@ app.use(passport.session());
 
 
 // GET /api/tasks - handles also filter=? query parameter
-app.get('/api/tasks', 
-  isLoggedIn, 
-  [ ], // filter check is done in task-dao, if no matching filter is found all tasks are returned
+app.get('/api/tasks',
+  isLoggedIn,
+  [], // filter check is done in task-dao, if no matching filter is found all tasks are returned
   (req, res) => {
-  // get tasks that match optional filter in the query
-  taskDao.listTasks(req.user.id, req.query.filter)
-    .then(tasks => res.json(tasks))
-    .catch(() => res.status(500).end());
-});
+    // get tasks that match optional filter in the query
+    taskDao.listTasks(req.user.id, req.query.filter)
+      .then(tasks => res.json(tasks))
+      .catch(() => res.status(500).end());
+  });
+
+app.get('/api/publictasks',
+  (req, res) => {
+    // get tasks that match optional filter in the query
+    taskDao.listPublicTasks(req.query.filter)
+      .then(tasks => res.json(tasks))
+      .catch(() => res.status(500).end());
+  });
 
 // GET /api/tasks/<id>
-app.get('/api/tasks/:id', 
-isLoggedIn, 
-[ check('id').isInt() ], 
-async (req, res) => {
-  try {
-    const result = await taskDao.getTask(req.user.id, req.params.id);
-    if (result.error)
-      res.status(404).json(result);
-    else
-      res.json(result);
-  } catch (err) {
-    res.status(500).end();
-  }
-});
+app.get('/api/tasks/:id',
+  isLoggedIn,
+  [check('id').isInt()],
+  async (req, res) => {
+    try {
+      const result = await taskDao.getTask(req.user.id, req.params.id);
+      if (result.error)
+        res.status(404).json(result);
+      else
+        res.json(result);
+    } catch (err) {
+      res.status(500).end();
+    }
+  });
 
 
 // POST /api/tasks
-app.post('/api/tasks', 
-isLoggedIn, 
-[
-  check(['user']).isInt(),
-  check('description').isLength({ min: 1, max:160 }),      
-  check(['important', 'private', 'completed']).isBoolean(),
-  check('deadline').isISO8601({ strict: true }).optional({ checkFalsy: true }) 
-], 
-async (req, res) => {
-  const errors = validationResult(req).formatWith(errorFormatter); // format error message
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ error: errors.array().join(", ")  }); // error message is a single string with all error joined together
-  }
-
-
-  const task = {
-    description: req.body.description,
-    important: req.body.important,
-    private: req.body.private,
-    deadline: req.body.deadline,
-    completed: req.body.completed,
-    user: req.user.id // WARN: user id in the req.body.user does not mean anything because the loggedIn user can change only its owns
-  };  
-
-  try {
-    const result = await taskDao.createTask(task);
-    res.json(result); 
-  } catch (err) {
-    res.status(503).json({ error: `Database error during the creation of new task: ${err}.` }); 
-  }
-});
-
-// PUT /api/tasks/<id>
-app.put('/api/tasks/:id', 
-  isLoggedIn, 
+app.post('/api/tasks',
+  isLoggedIn,
   [
-    check(['id', 'user']).isInt(),  
-    check('description').isLength({ min: 1, max:160 }),      
+    check(['user']).isInt(),
+    check('description').isLength({ min: 1, max: 160 }),
     check(['important', 'private', 'completed']).isBoolean(),
-    check('deadline').isISO8601({ strict: true }).optional({ checkFalsy: true })   
-  ], 
+    check('deadline').isISO8601({ strict: true }).optional({ checkFalsy: true })
+  ],
   async (req, res) => {
     const errors = validationResult(req).formatWith(errorFormatter); // format error message
     if (!errors.isEmpty()) {
-      return res.status(422).json({ error: errors.array().join(", ")  }); // error message is a single string with all error joined together
+      return res.status(422).json({ error: errors.array().join(", ") }); // error message is a single string with all error joined together
     }
-  
 
-  if (req.body.id !== Number(req.params.id)) {  // Check if url and body id mismatch
-    return res.status(422).json({ error: 'URL and body id mismatch' });
-  }
 
-  const task = {
-    id: req.body.id,
-    description: req.body.description,
-    important: req.body.important,
-    private: req.body.private,
-    deadline: req.body.deadline,
-    completed: req.body.completed,
-    user: req.user.id // WARN: user id in the req.body.user does not mean anything because the loggedIn user can change only its owns
-  };
+    const task = {
+      description: req.body.description,
+      important: req.body.important,
+      private: req.body.private,
+      deadline: req.body.deadline,
+      completed: req.body.completed,
+      user: req.user.id // WARN: user id in the req.body.user does not mean anything because the loggedIn user can change only its owns
+    };
 
-  try {
-    const result = await taskDao.updateTask(req.user.id, task.id, task);
-    res.json(result); 
-  } catch (err) {
-    res.status(503).json({ error: `Database error during the update of task ${req.params.id}` });
-  }
+    try {
+      const result = await taskDao.createTask(task);
+      res.json(result);
+    } catch (err) {
+      res.status(503).json({ error: `Database error during the creation of new task: ${err}.` });
+    }
+  });
 
-});
+// PUT /api/tasks/<id>
+app.put('/api/tasks/:id',
+  isLoggedIn,
+  [
+    check(['id', 'user']).isInt(),
+    check('description').isLength({ min: 1, max: 160 }),
+    check(['important', 'private', 'completed']).isBoolean(),
+    check('deadline').isISO8601({ strict: true }).optional({ checkFalsy: true })
+  ],
+  async (req, res) => {
+    const errors = validationResult(req).formatWith(errorFormatter); // format error message
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ error: errors.array().join(", ") }); // error message is a single string with all error joined together
+    }
+
+
+    if (req.body.id !== Number(req.params.id)) {  // Check if url and body id mismatch
+      return res.status(422).json({ error: 'URL and body id mismatch' });
+    }
+
+    const task = {
+      id: req.body.id,
+      description: req.body.description,
+      important: req.body.important,
+      private: req.body.private,
+      deadline: req.body.deadline,
+      completed: req.body.completed,
+      user: req.user.id // WARN: user id in the req.body.user does not mean anything because the loggedIn user can change only its owns
+    };
+
+    try {
+      const result = await taskDao.updateTask(req.user.id, task.id, task);
+      res.json(result);
+    } catch (err) {
+      res.status(503).json({ error: `Database error during the update of task ${req.params.id}` });
+    }
+
+  });
 
 // DELETE /api/tasks/<id>
-app.delete('/api/tasks/:id', 
-  isLoggedIn, 
-  [ check('id').isInt() ], 
+app.delete('/api/tasks/:id',
+  isLoggedIn,
+  [check('id').isInt()],
   async (req, res) => {
-  try {
-    await taskDao.deleteTask(req.user.id, req.params.id);
-    res.status(200).json({}); 
-  } catch (err) {
-    res.status(503).json({ error: `Database error during the deletion of task ${req.params.id}` });
-  }
-});
+    try {
+      await taskDao.deleteTask(req.user.id, req.params.id);
+      res.status(200).json({});
+    } catch (err) {
+      res.status(503).json({ error: `Database error during the deletion of task ${req.params.id}` });
+    }
+  });
 
 
 /*** USER APIs ***/
@@ -225,10 +233,11 @@ app.delete('/api/sessions/current', (req, res) => {
 // GET /sessions/current
 // check whether the user is logged in or not
 app.get('/api/sessions/current', (req, res) => {
-  if(req.isAuthenticated()) {
-    res.status(200).json(req.user);}
+  if (req.isAuthenticated()) {
+    res.status(200).json(req.user);
+  }
   else
-    res.status(401).json({error: 'Unauthenticated user!'});;
+    res.status(401).json({ error: 'Unauthenticated user!' });;
 });
 
 

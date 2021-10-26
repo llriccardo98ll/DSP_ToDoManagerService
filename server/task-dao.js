@@ -45,6 +45,24 @@ exports.listTasks = (user, filter) => {
   });
 };
 
+exports.listPublicTasks = (filter) => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT * FROM tasks WHERE private=0';
+    db.all(sql, [], (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      const tasks = rows.map((e) => {
+        return Object.assign({}, e, { deadline: e.deadline && dayjs(e.deadline) })
+      });
+      if (filter && filters[filter])
+        resolve(tasks.filter(filters[filter].filterFn));
+      else resolve(tasks);
+    });
+  });
+};
+
 // get the course identified by {code}
 exports.getTask = (user, id) => {
   return new Promise((resolve, reject) => {
@@ -57,7 +75,7 @@ exports.getTask = (user, id) => {
       if (row == undefined) {
         resolve({ error: 'Task not found.' });
       } else {
-        const task = { ...row }; 
+        const task = { ...row };
         resolve(task);
       }
     });

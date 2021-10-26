@@ -12,10 +12,10 @@ function getJson(httpResponsePromise) {
       .then((response) => {
         if (response.ok) {
 
-         // always return {} from server, never null or non json, otherwise it will fail
-         response.json()
-            .then( json => resolve(json) )
-            .catch( err => reject({ error: "Cannot parse server response" }))
+          // always return {} from server, never null or non json, otherwise it will fail
+          response.json()
+            .then(json => resolve(json))
+            .catch(err => reject({ error: "Cannot parse server response" }))
 
         } else {
           // analyze the cause of error
@@ -24,16 +24,25 @@ function getJson(httpResponsePromise) {
             .catch(err => reject({ error: "Cannot parse server response" })) // something else
         }
       })
-      .catch(err => reject({ error: "Cannot communicate"  })) // connection error
+      .catch(err => reject({ error: "Cannot communicate" })) // connection error
   });
 }
 
 const getTasks = async (filter) => {
   return getJson(
-    filter 
+    filter
       ? fetch(BASEURL + '/tasks?filter=' + filter)
       : fetch(BASEURL + '/tasks')
-  ).then( json => {
+  ).then(json => {
+    return json.map((task) => Object.assign({}, task, { deadline: task.deadline && dayjs(task.deadline) }))
+  })
+}
+
+const getPublicTask = async (filter) => {
+  return getJson(filter
+    ? fetch(BASEURL + '/publictasks?filter=' + filter)
+    : fetch(BASEURL + '/publictasks')
+  ).then(json => {
     return json.map((task) => Object.assign({}, task, { deadline: task.deadline && dayjs(task.deadline) }))
   })
 }
@@ -57,7 +66,7 @@ function updateTask(task) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({...task, user: 1})
+      body: JSON.stringify({ ...task, user: 1 })
     })
   )
 }
@@ -78,7 +87,7 @@ async function logIn(credentials) {
     },
     body: JSON.stringify(credentials),
   });
-  if(response.ok) {
+  if (response.ok) {
     const user = await response.json();
     return user;
   }
@@ -87,7 +96,7 @@ async function logIn(credentials) {
       const errDetail = await response.json();
       throw errDetail.message;
     }
-    catch(err) {
+    catch (err) {
       throw err;
     }
   }
@@ -107,6 +116,6 @@ async function getUserInfo() {
   }
 }
 
-const API = { addTask, getTasks, updateTask, deleteTask, logIn, logOut, getUserInfo }
+const API = { addTask, getTasks, getPublicTask, updateTask, deleteTask, logIn, logOut, getUserInfo }
 export default API;
 

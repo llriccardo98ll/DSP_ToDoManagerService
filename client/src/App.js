@@ -91,14 +91,25 @@ const Main = () => {
 
 
   useEffect(() => {
-    if (loggedIn && dirty) {
-      API.getTasks(activeFilter)
-        .then(tasks => {
-          setTaskList(tasks);
-          setDirty(false);
-        })
-        .catch(e => handleErrors(e));
-    } 
+    if (dirty)
+      switch (loggedIn) {
+        case true:
+          API.getTasks(activeFilter)
+            .then(tasks => {
+              setTaskList(tasks);
+              setDirty(false);
+            })
+            .catch(e => handleErrors(e));
+          break;
+        case false:
+          API.getPublicTask(activeFilter)
+            .then(tasks => {
+              setTaskList(tasks);
+              setDirty(false);
+            })
+            .catch(e => handleErrors(e));
+          break;
+      }
   }, [activeFilter, dirty, loggedIn])
 
   // show error message in toast
@@ -117,7 +128,7 @@ const Main = () => {
         .then(() => setDirty(true))
         .catch(e => handleErrors(e))
 
-    // otherwise it is a new task to add
+      // otherwise it is a new task to add
     } else {
       API.addTask(task)
         .then(() => setDirty(true))
@@ -162,12 +173,12 @@ const Main = () => {
     setDirty(true);
   }
 
- 
+
   return (
 
     <Container fluid>
       <Row>
-        <Navigation onLogOut={handleLogOut} loggedIn={loggedIn}  user={user} />
+        <Navigation onLogOut={handleLogOut} loggedIn={loggedIn} user={user} />
       </Row>
 
       <Toast show={message !== ''} onClose={() => setMessage('')} delay={3000} autohide>
@@ -175,19 +186,17 @@ const Main = () => {
       </Toast>
 
       <Switch>
-        <Route path="/login">
+        <Route path={["/list/:filter"]}>
           <Row className="vh-100 below-nav">
-            {loggedIn ?  <Redirect to="/" />  : <LoginForm login={doLogIn} />}
+            <TaskMgr taskList={taskList} filter={activeFilter} onDelete={deleteTask} onEdit={handleEdit} onCheck={handleCheck} onSelect={handleSelectFilter}></TaskMgr>
+            <Button variant="success" size="lg" className="fixed-right-bottom" onClick={() => setSelectedTask(MODAL.ADD)}>+</Button>
+            {(selectedTask !== MODAL.CLOSED) && <ModalForm task={findTask(selectedTask)} onSave={handleSaveOrUpdate} onClose={handleClose}></ModalForm>}
           </Row>
         </Route>
-        <Route path={["/list/:filter"]}>
-          {loggedIn ?
-            <Row className="vh-100 below-nav">
-              <TaskMgr taskList={taskList} filter={activeFilter} onDelete={deleteTask} onEdit={handleEdit} onCheck={handleCheck} onSelect={handleSelectFilter}></TaskMgr>
-              <Button variant="success" size="lg" className="fixed-right-bottom" onClick={() => setSelectedTask(MODAL.ADD)}>+</Button>
-              {(selectedTask !== MODAL.CLOSED) && <ModalForm task={findTask(selectedTask)} onSave={handleSaveOrUpdate} onClose={handleClose}></ModalForm>}
-            </Row> : <Redirect to="/login" />
-          }
+        <Route path="/login">
+          <Row className="vh-100 below-nav">
+            {loggedIn ? <Redirect to="/" /> : <LoginForm login={doLogIn} />}
+          </Row>
         </Route>
         <Route>
           <Redirect to="/list/all" />
@@ -227,13 +236,13 @@ const TaskMgr = (props) => {
 
   return (
     <>
-        <Col bg="light" className="d-block col-4" id="left-sidebar">
-          <Filters items={filters} defaultActiveKey={activeFilter} onSelect={onSelect} />
-        </Col>
+      <Col bg="light" className="d-block col-4" id="left-sidebar">
+        <Filters items={filters} defaultActiveKey={activeFilter} onSelect={onSelect} />
+      </Col>
       <Col className="col-8">
         <h1 className="pb-3">Filter: <small className="text-muted">{activeFilter}</small></h1>
         <ContentList
-          tasks={ taskList}
+          tasks={taskList}
           onDelete={onDelete} onEdit={onEdit} onCheck={onCheck}
         />
       </Col>
