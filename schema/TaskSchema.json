@@ -49,6 +49,6 @@
     },
     "required": [
         "id",
-        "description"
+        "definition"
     ]
 }
