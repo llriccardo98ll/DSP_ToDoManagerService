@@ -1,7 +1,23 @@
 {
     "$schema": "./UserSchema.json",
-    "id": 1,
-    "name": "Riccardo",
-    "email": "riccardo@studenti.polito.it",
-    "password": "Riccardo"
+    "items": [
+        {
+            "id": 1,
+            "name": "Riccardo",
+            "email": "riccardo@studenti.polito.it",
+            "password": "Riccardo"
+        },
+        {
+            "id": 2,
+            "name": "Alessio",
+            "email": "alessio@studenti.polito.it",
+            "password": "Alessio"
+        },
+        {
+            "id": 3,
+            "name": "Edoardo",
+            "email": "edoardo@studenti.polito.it",
+            "password": "Edoardo"
+        }
+    ]
 }

@@ -1,29 +1,52 @@
 {
     "$schema": "./TaskSchema.json",
-    "id": 1,
-    "definition": "Buy the cake for me birthday",
-    "important": true,
-    "projects": "Personal",
-    "deadline": "2021-01-10",
-    "completed": false,
-    "owner": {
-        "id": 1,
-        "name": "Riccardo",
-        "email": "riccardo@studenti.polito.it",
-        "password": "Riccardo"
-    },
-    "assignedTo": [
+    "items": [
         {
-            "id": 3,
-            "name": "Alessio",
-            "email": "alessio@studenti.polito.it",
-            "password": "Alessio"
+            "id": 1,
+            "definition": "Buy the cake for me birthday",
+            "important": true,
+            "projects": "Personal",
+            "deadline": "2021-01-10",
+            "completed": false,
+            "owner": {
+                "id": 1,
+                "name": "Riccardo",
+                "email": "riccardo@studenti.polito.it",
+                "password": "Riccardo"
+            },
+            "assignedTo": [
+                {
+                    "id": 3,
+                    "name": "Alessio",
+                    "email": "alessio@studenti.polito.it",
+                    "password": "Alessio"
+                },
+                {
+                    "id": 4,
+                    "name": "Edoardo",
+                    "email": "edoardo@studenti.polito.it",
+                    "password": "Edoardo"
+                }
+            ]
         },
         {
-            "id": 4,
-            "name": "Edoardo",
-            "email": "edoardo@studenti.polito.it",
-            "password": "Edoardo"
+            "id": 2,
+            "definition": "Sell the ball of basket",
+            "deadline": "2021-11-22",
+            "owner": {
+                "id": 1,
+                "name": "Riccardo",
+                "email": "riccardo@studenti.polito.it",
+                "password": "Riccardo"
+            },
+            "assignedTo": [
+                {
+                    "id": 3,
+                    "name": "Alessio",
+                    "email": "alessio@studenti.polito.it",
+                    "password": "Alessio"
+                }
+            ]
         }
     ]
 }

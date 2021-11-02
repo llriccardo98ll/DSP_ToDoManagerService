@@ -2,53 +2,65 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "http://ToDoManager.com/userschema.json",
     "$title": "Schema of Task",
-    "dependencies": {},
-    "type": "object",
-    "properties": {
-        "id": {
-            "type": "integer",
-            "uniquess": true
-        },
-        "definition": {
-            "type": "string",
-            "maxLength": 160
-        },
-        "important": {
-            "type": "boolean",
-            "default": false
-        },
-        "private": {
-            "type": "boolean",
-            "default": true
-        },
-        "projects": {
-            "enum": [
-                "Personal",
-                "WA1_Project",
-                "WA2_Project",
-                "DPS_Project"
+    "definitions": {
+        "task": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "uniquess": true
+                },
+                "definition": {
+                    "type": "string",
+                    "maxLength": 160
+                },
+                "important": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "private": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "projects": {
+                    "enum": [
+                        "Personal",
+                        "WA1_Project",
+                        "WA2_Project",
+                        "DPS_Project"
+                    ]
+                },
+                "deadline": {
+                    "type": "string",
+                    "pattern": "202[0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+                },
+                "completed": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "owner": {
+                    "$ref": "./UserSchema.json"
+                },
+                "assignedTo": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "./UserSchema.json"
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "definition"
             ]
-        },
-        "deadline": {
-            "type": "string",
-            "pattern": "202[0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
-        },
-        "completed": {
-            "type": "boolean",
-            "default": false
-        },
-        "owner": {
-            "$ref": "./UserSchema.json"
-        },
-        "assignedTo": {
-            "type": "array",
-            "items": {
-                "$ref": "./UserSchema.json"
-            }
         }
     },
-    "required": [
-        "id",
-        "definition"
-    ]
+    "type": "object",
+    "properties": {
+        "items": {
+            "type": "array",
+            "items": {
+                "$ref": "#definitions/task"
+            }
+        }
+    }
 }
