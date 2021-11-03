@@ -29,7 +29,7 @@ const isNextWeek = (d) => {
 // get all courses
 exports.listTasks = (user, filter) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM tasks WHERE user=?';
+    const sql = 'SELECT * FROM tasks WHERE assignedTo=?';
     db.all(sql, [user], (err, rows) => {
       if (err) {
         reject(err);
@@ -66,7 +66,7 @@ exports.listPublicTasks = (filter) => {
 // get the course identified by {code}
 exports.getTask = (user, id) => {
   return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM tasks WHERE id=? and user=?';
+    const sql = 'SELECT * FROM tasks WHERE id=? and assignedTo=?';
     db.get(sql, [id, user], (err, row) => {
       if (err) {
         reject(err);
@@ -87,7 +87,7 @@ exports.getTask = (user, id) => {
 // the task id is added automatically by the DB, and it is returned as result
 exports.createTask = (task) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO tasks (description, important, private, deadline, completed, user) VALUES(?, ?, ?, ?, ?, ?)';
+    const sql = 'INSERT INTO tasks (description, important, private, deadline, completed, assignedTo) VALUES(?, ?, ?, ?, ?, ?)';
     db.run(sql, [task.description, task.important, task.private, task.deadline, task.completed, task.user], function (err) {
       if (err) {
         reject(err);
@@ -101,7 +101,7 @@ exports.createTask = (task) => {
 // update an existing task
 exports.updateTask = (user, id, task) => {
   return new Promise((resolve, reject) => {
-    const sql = 'UPDATE tasks SET description = ?, important = ?, private = ?, deadline = ?, completed = ? WHERE id = ? and user = ?';
+    const sql = 'UPDATE tasks SET description = ?, important = ?, private = ?, deadline = ?, completed = ? WHERE id = ? and assignedTo = ?';
     db.run(sql, [task.description, task.important, task.private, task.deadline, task.completed, id, user], function (err) {
       if (err) {
         reject(err);
@@ -115,7 +115,7 @@ exports.updateTask = (user, id, task) => {
 // delete an existing task
 exports.deleteTask = (user, id) => {
   return new Promise((resolve, reject) => {
-    const sql = 'DELETE FROM tasks WHERE id = ? and user = ?';
+    const sql = 'DELETE FROM tasks WHERE id = ? and assignedTo = ?';
     db.run(sql, [id, user], (err) => {
       if (err) {
         reject(err);
@@ -125,4 +125,3 @@ exports.deleteTask = (user, id) => {
     });
   });
 }
-

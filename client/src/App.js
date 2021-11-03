@@ -91,26 +91,25 @@ const Main = () => {
 
 
   useEffect(() => {
-    if (dirty)
-      switch (loggedIn) {
-        case true:
-          API.getTasks(activeFilter)
-            .then(tasks => {
-              setTaskList(tasks);
-              setDirty(false);
-            })
-            .catch(e => handleErrors(e));
-          break;
-        case false:
-          API.getPublicTask(activeFilter)
-            .then(tasks => {
-              setTaskList(tasks);
-              setDirty(false);
-            })
-            .catch(e => handleErrors(e));
-          break;
-      }
-  }, [activeFilter, dirty, loggedIn])
+    switch (loggedIn) {
+      case true:
+        API.getTasks(activeFilter)
+          .then(tasks => {
+            setTaskList(tasks);
+            setDirty(false);
+          })
+          .catch(e => handleErrors(e));
+        break;
+      case false:
+        API.getPublicTask(activeFilter)
+          .then(tasks => {
+            setTaskList(tasks);
+            setDirty(false);
+          })
+          .catch(e => handleErrors(e));
+        break;
+    }
+  }, [activeFilter, loggedIn])
 
   // show error message in toast
   const handleErrors = (err) => {

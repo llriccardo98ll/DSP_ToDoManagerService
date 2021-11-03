@@ -5,7 +5,7 @@
 const sqlite = require('sqlite3');
 
 // open the database
-const db = new sqlite.Database('tasks.db', (err) => {
+const db = new sqlite.Database('todomanager.db', (err) => {
   if (err) throw err;
 });
 

@@ -8,8 +8,7 @@
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer",
-                    "uniquess": true
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
