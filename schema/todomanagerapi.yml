@@ -1,0 +1,53 @@
+openapi: '3.0.2'
+info:
+  title: API Title
+  version: '1.0'
+servers:
+  - url: https://api.server.todomanager/v1
+paths:
+  /user/{idTask}:
+    get:
+      description: created 
+      responses:
+        '200':
+          description: OK
+
+    put:
+      description: ds
+      responses:
+        '200':
+          description: OK
+
+  /tasks:
+    get:
+      responses:
+        '200':
+          description: OK
+    post:
+      responses:
+        '201':
+          description: created
+        '400':
+          description: bad request
+
+  /tasks/{id}:
+    get:
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: not found
+    put:
+      responses:
+        '204':
+          description: no content
+        '400':
+          description: bad request
+        '404':
+          description: not found
+    delete:
+      responses:
+        '204':
+          description: no content
+        '404':
+          description: not found
