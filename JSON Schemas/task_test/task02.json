@@ -1,5 +1,5 @@
 {
-    "$schema": "./task_schema.json",
+    "$schema": "./../task_schema.json",
     "id": 2,
     "description": "Buy the cake for me birthday",
     "important": true,
