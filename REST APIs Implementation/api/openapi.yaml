@@ -1,39 +1,107 @@
 openapi: 3.0.1
 info:
   title: Swagger ToDo Manager
-  description: The ToDo Manager service allows users to keep track informtion about
-    the tasks they should carry out
-  termsOfService: http://swagger.io/terms/
+  description: REST APIs for the interaction with the ToDo Manager service.
+  termsOfService: 'http://swagger.io/terms/'
   license:
     name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   version: 1.0.0
 externalDocs:
   description: Find out more about Swagger
-  url: http://swagger.io
+  url: 'http://swagger.io'
 servers:
-- url: https://todomanager.swagger.io/v2
-- url: http://todomanager.swagger.io/v2
+  - url: 'https://todo.swagger.io/v2'
+  - url: 'http://todo.swagger.io/v2'
 tags:
-- name: tasks
-- name: users
-- name: users/authenticator
+  - name: tasks
+    description: resource representing the set of all the tasks
+  - name: tasks/public
+    description: resource representing the set of the public tasks
+  - name: 'tasks/{taskId}'
+    description: resource representing a single task
+  - name: 'tasks/{taskId}/assignees'
+    description: >-
+      resource representing the users to which the task with ID taskID is
+      assigned
+  - name: 'tasks/{taskId}/assignees/{userId}'
+    description: >-
+      resource representing one user to which the task with ID taskID is
+      assigned
+  - name: 'tasks/{taskId}/completion'
+    description: resource representing the completion of the the task with ID taskID
+  - name: tasks/assignments
+    description: resource representing the assignments of tasks to users
+  - name: users
+    description: resource representing the set of all the users
+  - name: users/authenticator
+    description: resource representing the authenticator
+  - name: 'users/{userId}'
+    description: resource representing the user with ID userId
+  - name: 'users/{userId}/tasks/created'
+    description: resource representing the tasks created by the user with ID userId
+  - name: 'users/{userId}/tasks/assigned'
+    description: resource representing the tasks assigned to the user with ID userId
 paths:
+  /api/tasks/public:
+    get:
+      tags:
+        - tasks/public
+      summary: Retrieve the public tasks
+      description: >-
+        The public tasks (i.e., the tasks that are visible for all the users of the service) are retrieved. This operation does not require authentication. A pagination mechanism is implemented to limit the size of messages.
+      operationId: getPublicTasks
+      parameters:
+        - in: query
+          name: pageNo
+          required: false
+          schema:
+            type: integer
+          description: 'The id of the requested page (if absent, the first page is returned)'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  totalItems:
+                    type: integer
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  next:
+                    type: string
+        '404':
+          description: Not Found
+          content: {}
+        '500':
+          description: Internal Server Error
+          content: {}
   /api/tasks:
     post:
       tags:
-      - tasks
-      summary: Add a new task to the store
+        - tasks
+      security:
+        - cookieAuth: []
+      summary: Create a new task
+      description: A new task is created by the authenticated user.
       operationId: addTask
       requestBody:
-        description: Task object that needs to be added to the store
+        description: Task object that needs to be created
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Task'
         required: true
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:
@@ -41,114 +109,63 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Task'
-                x-content-type: application/json
-        "400":
-          description: Bad request
+        '400':
+          description: Bad Request
           content: {}
-        "401":
+        '401':
           description: Unauthorized
           content: {}
-        "500":
-          description: Internal server error
+        '500':
+          description: Internal Server Error
           content: {}
+  /api/tasks/assignments:
+    post:
+      tags:
+        - tasks/assignments
       security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
-  /api/tasks/public:
-    get:
-      tags:
-      - tasks
-      summary: Return the public tasks
-      description: |-
-        The operation to retrieve the list of all task are marked as public.
-
-        This operation does not require the authentication.
-      operationId: getPublicTasks
-      parameters:
-      - name: pageNo
-        in: query
-        description: "The id of the requested page (if absent, the first page is returned)"
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
+        - cookieAuth: []
+      summary: Assign automatically the unassigned tasks in a balanced manner
+      description: >-
+        The tasks, whose owner is the user who performed this request and that are not assigned to any user, are automatically assigned to the
+        users of the service in a balanced manner.
+      operationId: assign
       responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/inline_response_200'
-        "400":
-          description: Not found
-          content: {}
-        "500":
-          description: Internal server error
-          content: {}
-      x-swagger-router-controller: Tasks
-  /api/tasks/{taskId}:
-    get:
-      tags:
-      - tasks
-      summary: Retreve a task
-      description: The task with ID taskId is retrieved. This operation can be performed
-        on the task if at least one of the following three conditions is satisfied.
-        1) The task is public. 2) The user who performs the operation is the task's
-        owner. 3) The user who performs the operation is a task's assignee.
-      operationId: getSingleTask
-      parameters:
-      - name: taskId
-        in: path
-        description: ID of the task to retrieve
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
+        '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Task'
-                x-content-type: application/json
-        "401":
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+        '400':
+          description: Bad Request
+          content: {}
+        '401':
           description: Unauthorized
           content: {}
-        "403":
-          description: Forbidden
-          content: {}
-        "404":
-          description: Not Found
-          content: {}
-        "500":
+        '500':
           description: Internal Server Error
           content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
+  '/api/tasks/{taskId}':
     put:
       tags:
-      - tasks
+        - 'tasks/{taskId}'
+      security:
+        - cookieAuth: []
       summary: Update a task
-      description: The task with ID taskId is updated. This operation does not allow
-        to mark a task as completed. This operation can be performed only by the owner.
+      description: The task with ID taskId is updated. This operation does not allow to mark a task as completed. This operation can be performed only by the owner.
       operationId: updateSingleTask
       parameters:
-      - name: taskId
-        in: path
-        description: ID of the task to update
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
+        - name: taskId
+          in: path
+          description: ID of the task to update
+          required: true
+          schema:
+            type: integer
+            format: int64
       requestBody:
         description: The updated task object that needs to replace the old object
         content:
@@ -157,83 +174,106 @@ paths:
               $ref: '#/components/schemas/Task'
         required: true
       responses:
-        "204":
+        '204':
           description: No Content
           content: {}
-        "400":
+        '400':
           description: Bad Request
           content: {}
-        "401":
+        '401':
           description: Unauthorized
           content: {}
-        "403":
+        '403':
           description: Forbidden
           content: {}
-        "404":
+        '404':
           description: Not Found
           content: {}
-        "500":
+        '500':
           description: Internal Server Error
           content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
-    delete:
-      tags:
-      - tasks
-      summary: Delete a task
-      description: The task with ID taskId is deleted. This operation can only be
-        performed by the owner.
-      operationId: deleteTask
-      parameters:
-      - name: taskId
-        in: path
-        description: ID of the task to delete
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "204":
-          description: Successful operation - No Content
-          content: {}
-        "401":
-          description: Unauthorized
-          content: {}
-        "403":
-          description: Forbidden
-          content: {}
-        "404":
-          description: Not Found
-          content: {}
-        "500":
-          description: Internal Server Error
-          content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
-  /api/tasks/{taskId}/assignees:
     get:
       tags:
-      - tasks
-      summary: Retreve the users a task has been assigned to
-      description: The users to whom the task with ID taskId is assigned are retrieved.
-        This operation can be performed only by the owner.
-      operationId: getUsersAssigned
+        - 'tasks/{taskId}'
+      security:
+        - cookieAuth: []
+      summary: Retreve a task
+      description: The task with ID taskId is retrieved. This operation can be performed on the task if at least one of the following three conditions is satisfied. 1) The task is public. 2) The user who performs the operation is the task's owner. 3) The user who performs the operation is a task's assignee. 
+      operationId: getSingleTask
       parameters:
-      - name: taskId
-        in: path
-        description: ID of the task to retrieve
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
+        - name: taskId
+          in: path
+          description: ID of the task to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
-        "200":
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
+          content: {}
+        '403':
+          description: Forbidden
+          content: {}
+        '404':
+          description: Not Found
+          content: {}
+        '500':
+          description: Internal Server Error
+          content: {}
+    delete:
+      tags:
+        - 'tasks/{taskId}'
+      security:
+        - cookieAuth: []
+      summary: Delete a task
+      description: The task with ID taskId is deleted. This operation can only be performed by the owner.
+      operationId: deleteTask
+      parameters:
+        - name: taskId
+          in: path
+          description: ID of the task to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Successful operation - No Content
+          content: {}
+        '401':
+          description: Unauthorized
+          content: {}
+        '403':
+          description: Forbidden
+          content: {}
+        '404':
+          description: Not Found
+          content: {}
+        '500':
+          description: Internal Server Error
+          content: {}
+  /api/users:
+    get:
+      tags:
+        - users
+      security:
+        - cookieAuth: []
+      summary: Get information about the users
+      description: >-
+        The available information (passwords excluded) about all the
+        users is retrieved.
+      operationId: getUsers
+      responses:
+        '200':
           description: Successful operation
           content:
             application/json:
@@ -241,39 +281,105 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-                x-content-type: application/json
-        "401":
+        '401':
           description: Unauthorized
           content: {}
-        "403":
-          description: Forbidden
-          content: {}
-        "404":
+        '404':
           description: Not Found
           content: {}
-        "500":
-          description: Internal Server Error
-          content: {}
+  '/api/users/{userId}':
+    get:
+      tags:
+        - 'users/{userId}'
       security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
+        - cookieAuth: []
+      summary: Get information about a user
+      description: >-
+        The available information (password excluded) about the user
+        specified by userId is retrieved.
+      operationId: getSingleUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user to get
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content: {}
+        '404':
+          description: Not Found
+          content: {}
+  /api/users/authenticator:
     post:
       tags:
-      - tasks
+        - users/authenticator
+      summary: Logs a user in or out
+      description: >-
+        The user who wants to log in or out sends the user data to the
+        authenticator which performs the operation.
+      operationId: authenticateUser
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+          description: The operation type ("login" or "logout")
+      requestBody:
+        description: >-
+          The data of the user who wants to perform log in or log out. For login
+          the structure must contain email and password. For logout, the
+          structure must contain the user id.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: token=abcde12345; Path=/; HttpOnly
+        '400':
+          description: Bad Request
+          content: {}
+        '401':
+          description: Unauthorized - Wrong password
+          content: {}
+        '404':
+          description: Not found - Wrong username
+          content: {}
+  '/api/tasks/{taskId}/assignees':
+    post:
+      tags:
+        - 'tasks/{taskId}/assignees'
+      security:
+        - cookieAuth: []
       summary: Assign a task to a user
-      description: The task with ID taskId is assigned to the user specified in the
-        request body. This operation can only be performed by the owner.
+      description: >-
+        The task with ID taskId is assigned to the user specified in the request
+        body. This operation can only be performed by the owner.
       operationId: assignTaskToUser
       parameters:
-      - name: taskId
-        in: path
-        description: ID of the task
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
+        - name: taskId
+          in: path
+          description: ID of the task
+          required: true
+          schema:
+            type: integer
+            format: int64
       requestBody:
         description: the user to whom the task is assigned
         content:
@@ -282,149 +388,42 @@ paths:
               $ref: '#/components/schemas/User'
         required: true
       responses:
-        "204":
+        '204':
           description: Successful operation - No Content
           content: {}
-        "400":
+        '400':
           description: Bad Request
           content: {}
-        "401":
+        '401':
           description: Unauthorized
           content: {}
-        "403":
+        '403':
           description: Forbidden
           content: {}
-        "404":
+        '404':
           description: Not Found
           content: {}
-        "500":
+        '500':
           description: Internal Server Error
           content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
-  /api/tasks/{taskId}/assignees/{userId}:
-    delete:
-      tags:
-      - tasks
-      summary: Remove a user from the assigned task
-      description: "The user that is removed is the user, identified by userId, that\
-        \ was assigned to the task identified by taskId. This operation can be performed\
-        \ only by the owner."
-      operationId: removeUser
-      parameters:
-      - name: taskId
-        in: path
-        description: ID of the assigned task
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      - name: userId
-        in: path
-        description: ID of the user to remove
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "204":
-          description: Successful operation - No Content
-          content: {}
-        "401":
-          description: Unauthorized
-          content: {}
-        "403":
-          description: Forbidden
-          content: {}
-        "404":
-          description: Not Found
-          content: {}
-        "500":
-          description: Internal Server Error
-          content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
-  /api/tasks/{taskId}/completion:
-    put:
-      tags:
-      - tasks
-      summary: Complete a task
-      description: The task with ID taskId is marked as completed. This operation
-        can only be performed by an assignee of the task.
-      operationId: completeTask
-      parameters:
-      - name: taskId
-        in: path
-        description: ID of the task
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "204":
-          description: Successful operation - No Content
-          content: {}
-        "401":
-          description: Unauthorized
-          content: {}
-        "403":
-          description: Forbidden
-          content: {}
-        "404":
-          description: Not Found
-          content: {}
-        "500":
-          description: Internal Server Error
-          content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
-  /api/tasks/assignments:
-    post:
-      tags:
-      - tasks
-      summary: Assign automatically the unassigned tasks in a balanced manner
-      description: "The tasks, whose owner is the user who performed this request\
-        \ and that are not assigned to any user, are automatically assigned to the\
-        \ users of the service in a balanced manner."
-      operationId: assign
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/inline_response_200_1'
-        "400":
-          description: Bad Request
-          content: {}
-        "401":
-          description: Unauthorized
-          content: {}
-        "500":
-          description: Internal Server Error
-          content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Tasks
-  /api/users:
     get:
       tags:
-      - users
-      summary: Get information about the users
-      description: The available information (passwords excluded) about all the users
-        is retrieved.
-      operationId: getUsers
+        - 'tasks/{taskId}/assignees'
+      security:
+        - cookieAuth: []
+      summary: Retreve the users a task has been assigned to
+      description: The users to whom the task with ID taskId is assigned are retrieved. This operation can be performed only by the owner.
+      operationId: getUsersAssigned
+      parameters:
+        - name: taskId
+          in: path
+          description: ID of the task to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
-        "200":
+        '200':
           description: Successful operation
           content:
             application/json:
@@ -432,212 +431,206 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-                x-content-type: application/json
-        "401":
+        '401':
           description: Unauthorized
           content: {}
-        "404":
+        '403':
+          description: Forbidden
+          content: {}
+        '404':
           description: Not Found
           content: {}
+        '500':
+          description: Internal Server Error
+          content: {}
+  '/api/tasks/{taskId}/assignees/{userId}':
+    delete:
+      tags:
+        - 'tasks/{taskId}/assignees/{userId}'
       security:
-      - cookieAuth: []
-      x-swagger-router-controller: Users
-  /api/users/login:
-    get:
-      tags:
-      - users/authenticator
-      summary: Logs user into the system
-      operationId: loginUser
+        - cookieAuth: []
+      summary: Remove a user from the assigned task
+      description: >-
+        The user that is removed is the user, identified by userId, that was
+        assigned to the task identified by taskId. This operation can be performed only by the owner.
+      operationId: removeUser
       parameters:
-      - name: username
-        in: query
-        description: The user name for login
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: password
-        in: query
-        description: The password for login in clear text
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
+        - name: taskId
+          in: path
+          description: ID of the assigned task
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          description: ID of the user to remove
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
-        "200":
-          description: successful operation
-          headers:
-            X-Rate-Limit:
-              description: calls per hour allowed by the user
-              style: simple
-              explode: false
-              schema:
-                type: integer
-                format: int32
-            X-Expires-After:
-              description: date in UTC when token expires
-              style: simple
-              explode: false
-              schema:
-                type: string
-                format: date-time
-          content:
-            application/xml:
-              schema:
-                type: string
-                x-content-type: application/xml
-            application/json:
-              schema:
-                type: string
-        "400":
-          description: Invalid username/password supplied
+        '204':
+          description: Successful operation - No Content
           content: {}
-      x-swagger-router-controller: Usersauthenticator
-  /api/users/logout:
-    get:
-      tags:
-      - users/authenticator
-      summary: Logs out current logged in user session
-      operationId: logoutUser
-      responses:
-        default:
-          description: successful operation
-          content: {}
-      x-swagger-router-controller: Usersauthenticator
-  /api/users/{userId}:
-    get:
-      tags:
-      - users
-      summary: Get information about a user
-      description: The available information (password excluded) about the user specified
-        by userId is retrieved.
-      operationId: getSingleUser
-      parameters:
-      - name: userId
-        in: path
-        description: ID of the user to get
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        "401":
+        '401':
           description: Unauthorized
           content: {}
-        "404":
+        '403':
+          description: Forbidden
+          content: {}
+        '404':
           description: Not Found
           content: {}
+        '500':
+          description: Internal Server Error
+          content: {}
+  '/api/tasks/{taskId}/completion':
+    put:
+      tags:
+        - 'tasks/{taskId}/completion'
       security:
-      - cookieAuth: []
-      x-swagger-router-controller: Users
-  /api/users/{userId}/tasks/created:
+        - cookieAuth: []
+      summary: Complete a task
+      description: >-
+        The task with ID taskId is marked as completed. This operation can only be performed by an assignee of the task.
+      operationId: completeTask
+      parameters:
+        - name: taskId
+          in: path
+          description: ID of the task
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Successful operation - No Content
+          content: {}
+        '401':
+          description: Unauthorized
+          content: {}
+        '403':
+          description: Forbidden
+          content: {}
+        '404':
+          description: Not Found
+          content: {}
+        '500':
+          description: Internal Server Error
+          content: {}
+  '/api/users/{userId}/tasks/created':
     get:
       tags:
-      - users
+        - users/{userId}/tasks/created
+      security:
+        - cookieAuth: []
       summary: Retrieve the tasks created by the user with ID userId
-      description: This operation allows an authenticated user to retrieve the tasks
-        that she has created. A pagination mechanism is implemented to limit the size
-        of messages.
+      description: >-
+        This operation allows an authenticated user to retrieve the tasks that she has created. A pagination mechanism is implemented to limit the size of messages.
       operationId: getUserTasks
       parameters:
-      - name: userId
-        in: path
-        description: ID of the user
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      - name: pageNo
-        in: query
-        description: "The id of the requested page (if absent, the first page is returned)"
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: pageNo
+          required: false
+          schema:
+            type: integer
+          description: The id of the requested page (if absent, the first page is returned)
       responses:
-        "200":
+        '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_2'
-        "401":
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  totalItems:
+                    type: integer
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  next:
+                    type: string
+        '401':
           description: Unauthorized
           content: {}
-        "403":
+        '403':
           description: Forbidden
           content: {}
-        "404":
+        '404':
           description: Not Found
           content: {}
-        "500":
+        '500':
           description: Internal Server Error
           content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Users
-  /api/users/{userId}/tasks/assigned:
+  '/api/users/{userId}/tasks/assigned':
     get:
       tags:
-      - users
+        - users/{userId}/tasks/assigned
+      security:
+        - cookieAuth: []
       summary: Retrieve the tasks assigned to the user with ID userId
-      description: This operation allows an authenticated user to retrieve the tasks
-        that has been assigned to her. A pagination mechanism is implemented to limit
-        the size of messages.
+      description: >-
+        This operation allows an authenticated user to retrieve the tasks that has been assigned to her. A pagination mechanism is implemented to limit the size of messages.
       operationId: getAssignedTasks
       parameters:
-      - name: userId
-        in: path
-        description: ID of the user
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: integer
-          format: int64
-      - name: pageNo
-        in: query
-        description: "The id of the requested page (if absent, the first page is returned)"
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: pageNo
+          required: false
+          schema:
+            type: integer
+          description: The id of the requested page (if absent, the first page is returned)
       responses:
-        "200":
+        '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/inline_response_200_2'
-        "401":
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+                  totalItems:
+                    type: integer
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  next:
+                    type: string
+        '401':
           description: Unauthorized
           content: {}
-        "403":
+        '403':
           description: Forbidden
           content: {}
-        "404":
+        '404':
           description: Not Found
           content: {}
-        "500":
+        '500':
           description: Internal Server Error
           content: {}
-      security:
-      - cookieAuth: []
-      x-swagger-router-controller: Users
 components:
   schemas:
     Task:
@@ -645,226 +638,81 @@ components:
       properties:
         $schema:
           type: string
-          description: path to the JSON Schema to use for the validation of the JSON
-            file describing the task
+          description: >-
+            path to the JSON Schema to use for the validation of the JSON file
+            describing the task
         id:
           type: integer
-          description: unique identifier of the task in the ToDo Manager service (mandatory)
+          description: unique identifier for the task
         description:
-          maxLength: 160
           type: string
-          description: "textual description of the task (mandatory, maximum length:\
-            \ 160 characters)"
+          maxLength: 160
+          description: textual task description
         important:
           type: boolean
-          description: "this Boolean property is set to true if the task is marked\
-            \ as important, false otherwise (default value: false)"
+          description: >-
+            this property is set to true if the task is marked as important,
+            false otherwise
+          default: false
         private:
           type: boolean
-          description: "this Boolean property is set to true if the task is marked\
-            \ as private, false if the task is public (default value: false). \n A\
-            \ task is said private if only the user who created it can get information\
-            \ about it, public if every user can get information about it"
+          description: >-
+            this property is set to true if the task is marked as private, false
+            otherwise
           default: true
-        projects:
-          type: array
-          description: "the name of the project in which the task is inserted. In\
-            \ the ToDo Manager service, only a predetermined set of the possible values\
-            \ for projects must be accepted (e.g., you can suppose that 'Personal',\
-            \ 'WA1_Project', 'WA2_Project', 'DSP_Project' are th only acceptable values\
-            \ for the projects field)"
-          items:
-            type: string
-            enum:
-            - Personal
-            - WA1_Project
-            - WA2_Project
-            - DPS_Project
-        deadline:
-          pattern: "202[0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+        project:
           type: string
-          description: "the due date and hour of the task. The ToDo Manager service\
-            \ must accept only dates following Junary 1st, 2020. The date format must\
-            \ be compliant to the ISO 8601 standard"
+          description: project in which the task is inserted
+        deadline:
+          type: string
+          format: date-time
+          description: the due date and hour of the task
         completed:
           type: boolean
-          description: "this Boolean property is set to true if the task is marked\
-            \ as completed, false otherwise (defaul value: false)"
+          description: >-
+            this property is set to true if the task is marked as completed,
+            false otherwise
           default: false
-        owner:
+        owner: 
           $ref: '#/components/schemas/User'
-        assignedTo:
+        assignees:
           type: array
           items:
             $ref: '#/components/schemas/User'
-      example:
-        important: true
-        owner:
-          password: password
-          $schema: $schema
-          name: name
-          id: 6
-          email: ""
-        private: true
-        projects:
-        - Personal
-        - Personal
-        $schema: $schema
-        description: description
-        id: 0
-        completed: false
-        deadline: deadline
-        assignedTo:
-        - null
-        - null
+        self:
+          type: string
+          format: uri-reference
+          description: self link
     User:
       type: object
       properties:
         $schema:
           type: string
-          description: path to the JSON Schema to use for the validation of the JSON
-            file describing the task
+          description: >-
+            path to the JSON Schema to use for the validation of the JSON file
+            describing the task
         id:
           type: integer
-          description: unique identifier of the user in the ToDo Manager service (mandatory)
+          description: unique identifier for the user
         name:
           type: string
           description: username of the user
         email:
           type: string
-          description: "email address of the user, whitch must be used for the authentication\
-            \ to the service (mandatory, it must be a valid email address)"
           format: email
+          description: email address of the user
         password:
-          maxLength: 20
+          type: string
           minLength: 6
+          maxLength: 20
+          description: password of the user
+        self:
           type: string
-          description: "the user's password, which must be used for the autentication\
-            \ to the service (the password must be at least 6 characters long and\
-            \ at most 20 characters long)"
-      example:
-        password: password
-        $schema: $schema
-        name: name
-        id: 6
-        email: ""
-    inline_response_200:
-      type: object
-      properties:
-        tasks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
-      example:
-        tasks:
-        - important: true
-          owner:
-            password: password
-            $schema: $schema
-            name: name
-            id: 6
-            email: ""
-          private: true
-          projects:
-          - Personal
-          - Personal
-          $schema: $schema
-          description: description
-          id: 0
-          completed: false
-          deadline: deadline
-          assignedTo:
-          - null
-          - null
-        - important: true
-          owner:
-            password: password
-            $schema: $schema
-            name: name
-            id: 6
-            email: ""
-          private: true
-          projects:
-          - Personal
-          - Personal
-          $schema: $schema
-          description: description
-          id: 0
-          completed: false
-          deadline: deadline
-          assignedTo:
-          - null
-          - null
-    inline_response_200_1:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-      example:
-        id: 0
-    inline_response_200_2:
-      type: object
-      properties:
-        totalPages:
-          type: integer
-        currentPage:
-          type: integer
-        totalItems:
-          type: integer
-        tasks:
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
-        next:
-          type: string
-      example:
-        next: next
-        totalItems: 1
-        totalPages: 0
-        currentPage: 6
-        tasks:
-        - important: true
-          owner:
-            password: password
-            $schema: $schema
-            name: name
-            id: 6
-            email: ""
-          private: true
-          projects:
-          - Personal
-          - Personal
-          $schema: $schema
-          description: description
-          id: 0
-          completed: false
-          deadline: deadline
-          assignedTo:
-          - null
-          - null
-        - important: true
-          owner:
-            password: password
-            $schema: $schema
-            name: name
-            id: 6
-            email: ""
-          private: true
-          projects:
-          - Personal
-          - Personal
-          $schema: $schema
-          description: description
-          id: 0
-          completed: false
-          deadline: deadline
-          assignedTo:
-          - null
-          - null
+          format: uri-reference
+          description: self link
   securitySchemes:
     cookieAuth:
-      type: apiKey
       description: JWT to identify the authenticated user.
-      name: connect.sid
+      type: apiKey
       in: cookie
+      name: connect.sid

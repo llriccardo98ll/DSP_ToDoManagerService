@@ -11,22 +11,19 @@ var serverPort = 3000;
 
 var taskController = require(path.join(__dirname, 'controllers/Tasks'));
 var userController = require(path.join(__dirname, 'controllers/Users'));
-var autenticatorController = require(path.join(__dirname, 'controllers/Usersauthenticator'));
+var assignmentController = require(path.join(__dirname, 'controllers/Assignments'));
 
 // swaggerRouter configuration
 var options = {
-    routing: {
-        controllers: path.join(__dirname, './controllers')
-    },
+    controllers: path.join(__dirname, './controllers')
 };
-
 var expressAppConfig = oas3Tools.expressAppConfig(path.join(__dirname, 'api/openapi.yaml'), options);
 expressAppConfig.addValidator();
 var app = expressAppConfig.getApp();
 
 // Set validator middleware
-var taskSchema = JSON.parse(fs.readFileSync(path.join('.', 'json-schemas', 'task_schema.json')).toString());
-var userSchema = JSON.parse(fs.readFileSync(path.join('.', 'json-schemas', 'user_schema.json')).toString());
+var taskSchema = JSON.parse(fs.readFileSync(path.join('.', 'json_schemas', 'task_schema.json')).toString());
+var userSchema = JSON.parse(fs.readFileSync(path.join('.', 'json_schemas', 'user_schema.json')).toString());
 var validator = new Validator({ allErrors: true });
 validator.ajv.addSchema([userSchema, taskSchema]);
 var validate = validator.validate;
@@ -52,11 +49,27 @@ passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
    })
 );
 
-// Route methods
-app.get('/api/task/public', taskController.getPublicTasks);
 
+// Route methods
+
+app.post('/api/users/authenticator', userController.authenticateUser);
+app.get('/api/tasks/public', taskController.getPublicTasks);
+app.post('/api/tasks', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.addTask);
+app.get('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), taskController.getSingleTask);
+app.delete('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), taskController.deleteTask);
+app.put('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.updateSingleTask);
+app.put('/api/tasks/:taskId/completion', passport.authenticate('jwt', { session: false }), taskController.completeTask);
+app.post('/api/tasks/:taskId/assignees', passport.authenticate('jwt', { session: false }), validate({ body: userSchema }), assignmentController.assignTaskToUser);
+app.get('/api/tasks/:taskId/assignees', passport.authenticate('jwt', { session: false }), assignmentController.getUsersAssigned);
+app.delete('/api/tasks/:taskId/assignees/:userId', passport.authenticate('jwt', { session: false }), assignmentController.removeUser);
+app.post('/api/tasks/assignments', passport.authenticate('jwt', { session: false }), assignmentController.assignAutomatically);
+app.get('/api/users', passport.authenticate('jwt', { session: false }), userController.getUsers);
+app.get('/api/users/:userId', passport.authenticate('jwt', { session: false }), userController.getSingleUser);
+app.get('/api/users/:userId/tasks/created', passport.authenticate('jwt', { session: false }), taskController.getOwnedTasks);
+app.get('/api/users/:userId/tasks/assigned', passport.authenticate('jwt', { session: false }), taskController.getAssignedTasks);
 
 // Error handlers for validation and authentication errors
+
 app.use(function(err, req, res, next) {
     if (err instanceof ValidationError) {
         res.status(400).send(err);
@@ -70,10 +83,9 @@ app.use(function(err, req, res, next) {
     } else next(err);
 });
 
+
 // Initialize the Swagger middleware
-http.createServer(app).listen(serverPort, function () {
+http.createServer(app).listen(serverPort, function() {
     console.log('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
     console.log('Swagger-ui is available on http://localhost:%d/docs', serverPort);
 });
-
-

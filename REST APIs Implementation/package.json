@@ -1,11 +1,11 @@
 {
-  "name": "swagger-todo-manager",
+  "name": "swagger-to-do-list",
   "version": "1.0.0",
-  "description": "The ToDo Manager service allows users to keep track informtion about the tasks they should carry out",
+  "description": "This is a sample server for the management of a To Do list.",
   "main": "index.js",
   "scripts": {
-	"prestart": "npm install",
-	"start": "node index.js"
+    "prestart": "npm install",
+    "start": "node index.js"
   },
   "keywords": [
     "swagger"

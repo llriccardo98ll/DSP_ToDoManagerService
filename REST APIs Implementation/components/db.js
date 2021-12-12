@@ -3,7 +3,7 @@
 const sqlite = require('sqlite3').verbose();
 const path = require('path');
 
-const DBSOURCE = path.join(__dirname, './../database/databaseV2.db');
+const DBSOURCE = path.join(__dirname, '../database/databaseV2.db');
 console.log(DBSOURCE);
 
 const db = new sqlite.Database(DBSOURCE, (err) => {
