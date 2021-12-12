@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "Swagger ToDo Manager",
-    "description": "The ToDo Manager service allows users to keep track informtion about the tasks they should carry out",
+    "description": "REST APIs for the interaction with the ToDo Manager service.",
     "termsOfService": "http://swagger.io/terms/",
     "license": {
       "name": "Apache 2.0",
@@ -16,27 +16,124 @@
   },
   "servers": [
     {
-      "url": "https://todomanager.swagger.io/v2"
+      "url": "https://todo.swagger.io/v2"
     },
     {
-      "url": "http://todomanager.swagger.io/v2"
+      "url": "http://todo.swagger.io/v2"
     }
   ],
   "tags": [
     {
       "name": "tasks",
-      "description": ""
+      "description": "resource representing the set of all the tasks"
+    },
+    {
+      "name": "tasks/public",
+      "description": "resource representing the set of the public tasks"
+    },
+    {
+      "name": "tasks/{taskId}",
+      "description": "resource representing a single task"
+    },
+    {
+      "name": "tasks/{taskId}/assignees",
+      "description": "resource representing the users to which the task with ID taskID is assigned"
+    },
+    {
+      "name": "tasks/{taskId}/assignees/{userId}",
+      "description": "resource representing one user to which the task with ID taskID is assigned"
+    },
+    {
+      "name": "tasks/{taskId}/completion",
+      "description": "resource representing the completion of the the task with ID taskID"
+    },
+    {
+      "name": "tasks/assignments",
+      "description": "resource representing the assignments of tasks to users"
     },
     {
       "name": "users",
-      "description": ""
+      "description": "resource representing the set of all the users"
     },
     {
       "name": "users/authenticator",
-      "description": ""
+      "description": "resource representing the authenticator"
+    },
+    {
+      "name": "users/{userId}",
+      "description": "resource representing the user with ID userId"
+    },
+    {
+      "name": "users/{userId}/tasks/created",
+      "description": "resource representing the tasks created by the user with ID userId"
+    },
+    {
+      "name": "users/{userId}/tasks/assigned",
+      "description": "resource representing the tasks assigned to the user with ID userId"
     }
   ],
   "paths": {
+    "/api/tasks/public": {
+      "get": {
+        "tags": [
+          "tasks/public"
+        ],
+        "summary": "Retrieve the public tasks",
+        "description": "The public tasks (i.e., the tasks that are visible for all the users of the service) are retrieved. This operation does not require authentication. A pagination mechanism is implemented to limit the size of messages.",
+        "operationId": "getPublicTasks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageNo",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The id of the requested page (if absent, the first page is returned)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalPages": {
+                      "type": "integer"
+                    },
+                    "currentPage": {
+                      "type": "integer"
+                    },
+                    "totalItems": {
+                      "type": "integer"
+                    },
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Task"
+                      }
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/tasks": {
       "post": {
         "tags": [
@@ -47,10 +144,11 @@
             "cookieAuth": []
           }
         ],
-        "summary": "Add a new task to the store",
+        "summary": "Create a new task",
+        "description": "A new task is created by the authenticated user.",
         "operationId": "addTask",
         "requestBody": {
-          "description": "Task object that needs to be added to the store",
+          "description": "Task object that needs to be created",
           "content": {
             "application/json": {
               "schema": {
@@ -75,7 +173,7 @@
             }
           },
           "400": {
-            "description": "Bad request",
+            "description": "Bad Request",
             "content": {}
           },
           "401": {
@@ -83,44 +181,36 @@
             "content": {}
           },
           "500": {
-            "description": "Internal server error",
+            "description": "Internal Server Error",
             "content": {}
           }
         }
       }
     },
-    "/api/tasks/public": {
-      "get": {
+    "/api/tasks/assignments": {
+      "post": {
         "tags": [
-          "tasks"
+          "tasks/assignments"
         ],
-        "summary": "Return the public tasks",
-        "description": "The operation to retrieve the list of all task are marked as public.\n\nThis operation does not require the authentication.",
-        "operationId": "getPublicTasks",
-        "parameters": [
+        "security": [
           {
-            "in": "query",
-            "name": "pageNo",
-            "required": false,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The id of the requested page (if absent, the first page is returned)"
+            "cookieAuth": []
           }
         ],
+        "summary": "Assign automatically the unassigned tasks in a balanced manner",
+        "description": "The tasks, whose owner is the user who performed this request and that are not assigned to any user, are automatically assigned to the users of the service in a balanced manner.",
+        "operationId": "assign",
         "responses": {
           "200": {
-            "description": "successful operation",
+            "description": "Successful operation",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "tasks": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Task"
-                      }
+                    "id": {
+                      "type": "integer",
+                      "format": "int64"
                     }
                   }
                 }
@@ -128,11 +218,15 @@
             }
           },
           "400": {
-            "description": "Not found",
+            "description": "Bad Request",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {}
           },
           "500": {
-            "description": "Internal server error",
+            "description": "Internal Server Error",
             "content": {}
           }
         }
@@ -141,7 +235,7 @@
     "/api/tasks/{taskId}": {
       "put": {
         "tags": [
-          "tasks"
+          "tasks/{taskId}"
         ],
         "security": [
           {
@@ -203,7 +297,7 @@
       },
       "get": {
         "tags": [
-          "tasks"
+          "tasks/{taskId}"
         ],
         "security": [
           {
@@ -259,7 +353,7 @@
       },
       "delete": {
         "tags": [
-          "tasks"
+          "tasks/{taskId}"
         ],
         "security": [
           {
@@ -305,10 +399,151 @@
         }
       }
     },
+    "/api/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "summary": "Get information about the users",
+        "description": "The available information (passwords excluded) about all the users is retrieved.",
+        "operationId": "getUsers",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/users/{userId}": {
+      "get": {
+        "tags": [
+          "users/{userId}"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "summary": "Get information about a user",
+        "description": "The available information (password excluded) about the user specified by userId is retrieved.",
+        "operationId": "getSingleUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user to get",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/users/authenticator": {
+      "post": {
+        "tags": [
+          "users/authenticator"
+        ],
+        "summary": "Logs a user in or out",
+        "description": "The user who wants to log in or out sends the user data to the authenticator which performs the operation.",
+        "operationId": "authenticateUser",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The operation type (\"login\" or \"logout\")"
+          }
+        ],
+        "requestBody": {
+          "description": "The data of the user who wants to perform log in or log out. For login the structure must contain email and password. For logout, the structure must contain the user id.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string",
+                  "example": "token=abcde12345; Path=/; HttpOnly"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized - Wrong password",
+            "content": {}
+          },
+          "404": {
+            "description": "Not found - Wrong username",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/tasks/{taskId}/assignees": {
       "post": {
         "tags": [
-          "tasks"
+          "tasks/{taskId}/assignees"
         ],
         "security": [
           {
@@ -370,7 +605,7 @@
       },
       "get": {
         "tags": [
-          "tasks"
+          "tasks/{taskId}/assignees"
         ],
         "security": [
           {
@@ -428,7 +663,7 @@
     "/api/tasks/{taskId}/assignees/{userId}": {
       "delete": {
         "tags": [
-          "tasks"
+          "tasks/{taskId}/assignees/{userId}"
         ],
         "security": [
           {
@@ -487,7 +722,7 @@
     "/api/tasks/{taskId}/completion": {
       "put": {
         "tags": [
-          "tasks"
+          "tasks/{taskId}/completion"
         ],
         "security": [
           {
@@ -533,221 +768,10 @@
         }
       }
     },
-    "/api/tasks/assignments": {
-      "post": {
-        "tags": [
-          "tasks"
-        ],
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "summary": "Assign automatically the unassigned tasks in a balanced manner",
-        "description": "The tasks, whose owner is the user who performed this request and that are not assigned to any user, are automatically assigned to the users of the service in a balanced manner.",
-        "operationId": "assign",
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer",
-                      "format": "int64"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {}
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {}
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {}
-          }
-        }
-      }
-    },
-    "/api/users": {
-      "get": {
-        "tags": [
-          "users"
-        ],
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "summary": "Get information about the users",
-        "description": "The available information (passwords excluded) about all the users is retrieved.",
-        "operationId": "getUsers",
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {}
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {}
-          }
-        }
-      }
-    },
-    "/api/users/login": {
-      "get": {
-        "tags": [
-          "users/authenticator"
-        ],
-        "summary": "Logs user into the system",
-        "operationId": "loginUser",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "query",
-            "description": "The user name for login",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "password",
-            "in": "query",
-            "description": "The password for login in clear text",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "headers": {
-              "X-Rate-Limit": {
-                "description": "calls per hour allowed by the user",
-                "schema": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              },
-              "X-Expires-After": {
-                "description": "date in UTC when token expires",
-                "schema": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              }
-            },
-            "content": {
-              "application/xml": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid username/password supplied",
-            "content": {}
-          }
-        }
-      }
-    },
-    "/api/users/logout": {
-      "get": {
-        "tags": [
-          "users/authenticator"
-        ],
-        "summary": "Logs out current logged in user session",
-        "operationId": "logoutUser",
-        "responses": {
-          "default": {
-            "description": "successful operation",
-            "content": {}
-          }
-        }
-      }
-    },
-    "/api/users/{userId}": {
-      "get": {
-        "tags": [
-          "users"
-        ],
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "summary": "Get information about a user",
-        "description": "The available information (password excluded) about the user specified by userId is retrieved.",
-        "operationId": "getSingleUser",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "description": "ID of the user to get",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {}
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {}
-          }
-        }
-      }
-    },
     "/api/users/{userId}/tasks/created": {
       "get": {
         "tags": [
-          "users"
+          "users/{userId}/tasks/created"
         ],
         "security": [
           {
@@ -831,7 +855,7 @@
     "/api/users/{userId}/tasks/assigned": {
       "get": {
         "tags": [
-          "users"
+          "users/{userId}/tasks/assigned"
         ],
         "security": [
           {
@@ -924,53 +948,50 @@
           },
           "id": {
             "type": "integer",
-            "description": "unique identifier of the task in the ToDo Manager service (mandatory)"
+            "description": "unique identifier for the task"
           },
           "description": {
             "type": "string",
             "maxLength": 160,
-            "description": "textual description of the task (mandatory, maximum length: 160 characters)"
+            "description": "textual task description"
           },
           "important": {
             "type": "boolean",
-            "description": "this Boolean property is set to true if the task is marked as important, false otherwise (default value: false)"
+            "description": "this property is set to true if the task is marked as important, false otherwise",
+            "default": false
           },
           "private": {
             "type": "boolean",
-            "default": true,
-            "description": "this Boolean property is set to true if the task is marked as private, false if the task is public (default value: false). \n A task is said private if only the user who created it can get information about it, public if every user can get information about it"
+            "description": "this property is set to true if the task is marked as private, false otherwise",
+            "default": true
           },
-          "projects": {
-            "type": "array",
-            "description": "the name of the project in which the task is inserted. In the ToDo Manager service, only a predetermined set of the possible values for projects must be accepted (e.g., you can suppose that 'Personal', 'WA1_Project', 'WA2_Project', 'DSP_Project' are th only acceptable values for the projects field)",
-            "items": {
-              "type": "string",
-              "enum": [
-                "Personal",
-                "WA1_Project",
-                "WA2_Project",
-                "DPS_Project"
-              ]
-            }
+          "project": {
+            "type": "string",
+            "description": "project in which the task is inserted"
           },
           "deadline": {
             "type": "string",
-            "pattern": "202[0-9]-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])",
-            "description": "the due date and hour of the task. The ToDo Manager service must accept only dates following Junary 1st, 2020. The date format must be compliant to the ISO 8601 standard"
+            "format": "date-time",
+            "description": "the due date and hour of the task"
           },
           "completed": {
             "type": "boolean",
-            "default": false,
-            "description": "this Boolean property is set to true if the task is marked as completed, false otherwise (defaul value: false)"
+            "description": "this property is set to true if the task is marked as completed, false otherwise",
+            "default": false
           },
           "owner": {
             "$ref": "#/components/schemas/User"
           },
-          "assignedTo": {
+          "assignees": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/User"
             }
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "self link"
           }
         }
       },
@@ -983,7 +1004,7 @@
           },
           "id": {
             "type": "integer",
-            "description": "unique identifier of the user in the ToDo Manager service (mandatory)"
+            "description": "unique identifier for the user"
           },
           "name": {
             "type": "string",
@@ -992,13 +1013,18 @@
           "email": {
             "type": "string",
             "format": "email",
-            "description": "email address of the user, whitch must be used for the authentication to the service (mandatory, it must be a valid email address)"
+            "description": "email address of the user"
           },
           "password": {
             "type": "string",
             "minLength": 6,
             "maxLength": 20,
-            "description": "the user's password, which must be used for the autentication to the service (the password must be at least 6 characters long and at most 20 characters long)"
+            "description": "password of the user"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "self link"
           }
         }
       }
