@@ -12,7 +12,7 @@
         "name": "John",
         "email": "john@polito.it"
     },
-    "assignedTo": [
+    "assignees": [
         {
             "id": 1,
             "name": "John",

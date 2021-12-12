@@ -1,37 +1,34 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "http://ToDoManager.com/user_schema.json",
-    "$title": "User",
-    "description": "JSON Schema for User objects",
-    "type": "object",
-    "additionalItems": false,
-    "properties": {
-        "$schema": {
-            "type": "string",
-            "description": "path to the JSON Schema to use for the validation of the JSON file describing the task"
-        },
-        "id": {
-            "type": "integer",
-            "description": "unique identifier of the user in the ToDo Manager service (mandatory)"
-        },
-        "name": {
-            "type": "string",
-            "description": "username of the user"
-        },
-        "email": {
-            "type": "string",
-            "format": "email",
-            "description": "email address of the user, whitch must be used for the authentication to the service (mandatory, it must be a valid email address)"
-        },
-        "password": {
-            "type": "string",
-            "minLength": 6,
-            "maxLength": 20,
-            "description": "the user's password, which must be used for the autentication to the service (the password must be at least 6 characters long and at most 20 characters long)"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id" : "http://www.my-schema.com/user_schema.json",
+  "title": "User",
+  "description": "JSON Schema for User objects",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "path to the JSON Schema to use for the validation of the JSOn file describing the task"
     },
-    "required": [
-        "id",
-        "email"
-    ]
+    "id": {
+      "type": "integer",
+      "description": "unique identifier for the user"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "user email"
+    },
+    "name": {
+      "type": "string",
+      "description": "username"
+    },
+    "password": {
+      "type": "string",
+      "minLength" : 6,
+      "maxLength": 20,
+      "description": "password of the user"
+    }
+  },
+  "required": ["id", "email"]
 }

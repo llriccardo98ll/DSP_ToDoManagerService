@@ -12,7 +12,7 @@
         "id": 3,
         "email": "riccardo@studenti.polito.it"
     },
-    "assignedTo": [
+    "assignees": [
         {
             "id": 4,
             "name": "Giacomo",
