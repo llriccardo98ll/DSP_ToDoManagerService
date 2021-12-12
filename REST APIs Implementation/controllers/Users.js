@@ -1,10 +1,10 @@
 'use strict';
 
 var utils = require('../utils/writer.js');
-var Store = require('../service/StoreService');
+var Users = require('../service/UsersService');
 
-module.exports.deleteOrder = function deleteOrder (req, res, next, orderId) {
-  Store.deleteOrder(orderId)
+module.exports.getAssignedTasks = function getAssignedTasks (req, res, next, userId, pageNo) {
+  Users.getAssignedTasks(userId, pageNo)
     .then(function (response) {
       utils.writeJson(res, response);
     })
@@ -13,8 +13,8 @@ module.exports.deleteOrder = function deleteOrder (req, res, next, orderId) {
     });
 };
 
-module.exports.getInventory = function getInventory (req, res, next) {
-  Store.getInventory()
+module.exports.getSingleUser = function getSingleUser (req, res, next, userId) {
+  Users.getSingleUser(userId)
     .then(function (response) {
       utils.writeJson(res, response);
     })
@@ -23,8 +23,8 @@ module.exports.getInventory = function getInventory (req, res, next) {
     });
 };
 
-module.exports.getOrderById = function getOrderById (req, res, next, orderId) {
-  Store.getOrderById(orderId)
+module.exports.getUserTasks = function getUserTasks (req, res, next, userId, pageNo) {
+  Users.getUserTasks(userId, pageNo)
     .then(function (response) {
       utils.writeJson(res, response);
     })
@@ -33,8 +33,8 @@ module.exports.getOrderById = function getOrderById (req, res, next, orderId) {
     });
 };
 
-module.exports.placeOrder = function placeOrder (req, res, next, body) {
-  Store.placeOrder(body)
+module.exports.getUsers = function getUsers (req, res, next) {
+  Users.getUsers()
     .then(function (response) {
       utils.writeJson(res, response);
     })
