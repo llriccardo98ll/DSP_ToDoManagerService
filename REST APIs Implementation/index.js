@@ -67,6 +67,10 @@ app.get('/api/users', passport.authenticate('jwt', { session: false }), userCont
 app.get('/api/users/:userId', passport.authenticate('jwt', { session: false }), userController.getSingleUser);
 app.get('/api/users/:userId/tasks/created', passport.authenticate('jwt', { session: false }), taskController.getOwnedTasks);
 app.get('/api/users/:userId/tasks/assigned', passport.authenticate('jwt', { session: false }), taskController.getAssignedTasks);
+app.post('/api/tasks/:taskId/images', passport.authenticate('jwt', { session: false }), storage.uploadImg, imageController.addImage);
+app.get('/api/tasks/:taskId/images/:imageId', passport.authenticate('jwt', { session: false }), imageController.getSingleImage);
+app.delete('/api/tasks/:taskId/images/:imageId', passport.authenticate('jwt', { session: false }), imageController.deleteSingleImage);
+app.get('/api/tasks/:taskId/images/:imageId/imageFile', passport.authenticate('jwt', { session: false }), imageController.getSingleImageFile);
 
 // Error handlers for validation and authentication errors
 
