@@ -1,0 +1,27 @@
+{
+    "$schema": "./../task_schema.json",
+    "id": 2,
+    "description": "Buy the cake for me birthday",
+    "important": true,
+    "projects": [
+        "Personal"
+    ],
+    "deadline": "2021-01-10T10:00:00Z",
+    "completed": false,
+    "owner": {
+        "id": 3,
+        "email": "riccardo@studenti.polito.it"
+    },
+    "assignees": [
+        {
+            "id": 4,
+            "name": "Giacomo",
+            "email": "giacomo@studenti.polito.it"
+        },
+        {
+            "id": 5,
+            "name": "Alessio",
+            "email": "alessio@studenti.polito.it"
+        }
+    ]
+}

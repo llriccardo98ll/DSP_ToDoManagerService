@@ -1,0 +1,27 @@
+{
+    "$schema": "./../task_schema.json",
+
+    "id": 1,
+    "description": "Exam task",
+    "important": false,
+    "projects": ["Personal", "WA1_Project"],
+    "deadline": "2021-12-11T00:00:00Z",
+    "completed": false,
+    "owner": {
+        "id": 1,
+        "name": "John",
+        "email": "john@polito.it"
+    },
+    "assignees": [
+        {
+            "id": 1,
+            "name": "John",
+            "email": "john@polito.it"
+        },
+        {
+            "id": 2,
+            "name": "Mary",
+            "email": "mary@polito.it"
+        }
+    ]
+}
